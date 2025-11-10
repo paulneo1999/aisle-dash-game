@@ -161,49 +161,38 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        /* === NEW SCROLLBAR STYLES === */
-
-        /* Apply custom scrollbar to all lists that may scroll horizontally */
+        /* === SCROLLBAR STYLES (Kept for visibility when scroll is needed) === */
         #item-list, #reorder-list, .item-list-row {
-            scrollbar-color: #FF0000 #1a334c; /* Firefox scrollbar color (thumb track) */
-            scrollbar-width: thin; /* Firefox scrollbar thickness */
+            scrollbar-color: #FF0000 #1a334c; 
+            scrollbar-width: thin; 
         }
-
-        /* WebKit (Chrome, Safari) Scrollbar Styling */
         #item-list::-webkit-scrollbar, 
         #reorder-list::-webkit-scrollbar, 
         .item-list-row::-webkit-scrollbar {
-            height: 10px; /* Thicker scrollbar */
+            height: 10px; 
         }
-
-        /* Scrollbar Track (the background) */
         #item-list::-webkit-scrollbar-track, 
         #reorder-list::-webkit-scrollbar-track, 
         .item-list-row::-webkit-scrollbar-track {
-            background: #1a334c; /* Matches container background */
+            background: #1a334c; 
             border-radius: 10px;
         }
-
-        /* Scrollbar Thumb (the draggable part) */
         #item-list::-webkit-scrollbar-thumb, 
         #reorder-list::-webkit-scrollbar-thumb, 
         .item-list-row::-webkit-scrollbar-thumb {
-            background-color: #FF0000; /* Bright Red */
+            background-color: #FF0000; 
             border-radius: 10px;
-            border: 2px solid #0d1a26; /* Dark border for contrast */
+            border: 2px solid #0d1a26; 
         }
-
         #item-list::-webkit-scrollbar-thumb:hover, 
         #reorder-list::-webkit-scrollbar-thumb:hover, 
         .item-list-row::-webkit-scrollbar-thumb:hover {
-            background-color: #FF6347; /* Lighter red on hover */
+            background-color: #FF6347; 
         }
         /* === END SCROLLBAR STYLES === */
 
 
-        /* === Responsive Wrap CSS === */
-        
-        /* This rule forces items to fit on one line as long as possible. */
+        /* === ITEM SIZING: Aggressively shrink to fit in one row === */
         .item {
             cursor: grab; 
             padding: 0.3rem;
@@ -219,48 +208,20 @@
             position: relative;
             text-align: center; 
             
-            flex: 0 0 10%; /* NEW: Base width is 10% (10 cards fit a row) */
-            min-width: 75px; /* Minimum size to keep items usable */
-            max-width: 100px; 
+            /* Aggressively flexible for single row */
+            flex: 0 0 auto; 
+            min-width: 65px; /* Minimum size to allow more cards to fit before scroll */
+            max-width: 90px; 
+            width: 10%; /* General guidance for layout */
             box-sizing: border-box;
             
             margin-bottom: 0.5rem; 
-        }
-
-        /* ---------------------------------------------------- */
-        /* RULE 1: FOR SINGLE ROW (Less than 9 items) - Allows shrinking but scroll only if necessary */
-        /* ---------------------------------------------------- */
-
-        /* ---------------------------------------------------- */
-        /* RULE 2: FOR MULTI-ROW (9 items or more) - Forces wrapping and removes horizontal scroll */
-        /* ---------------------------------------------------- */
-        @media (max-width: 768px) {
-            .wrap-layout {
-                flex-wrap: wrap !important; /* Force wrapping */
-                overflow-x: hidden !important; /* Prevent horizontal scroll */
-                min-height: 200px; /* Allow space for two rows */
-                align-items: flex-start; /* Items start at the top */
-                justify-content: space-evenly !important; /* Evenly space items across the width */
-                padding-bottom: 0.5rem;
-            }
-            
-            /* Items in wrap-layout should be large enough to fit 4-5 items per row without getting too small */
-            .wrap-layout .item {
-                flex-basis: 22%; /* Aim for 4 cards wide on most phones */
-                min-width: 70px;
-                max-width: 100px;
-            }
-
-            /* Hide the custom horizontal scrollbar when wrapping is active */
-            .wrap-layout::-webkit-scrollbar {
-                display: none;
-            }
         }
         
         #reorder-list {
             display: none;
         }
-        /* End Responsive Wrap CSS */
+        /* End Responsive adjustments */
         
         /* Image styles */
         .item-icon {
@@ -403,7 +364,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- REVERTED TO PREVIOUS CLEAN IMAGE REFERENCES (Assuming files are correctly named on GitHub) ---
+            // --- IMAGE REFERENCES ---
             const items = [
                 { name: 'Milk', src: '13202316_XL1_20211008-removebg-preview.PNG' },
                 { name: 'Eggs', src: '11046848_XL1-removebg-preview.PNG' },
@@ -418,11 +379,11 @@
                 { name: 'Carrot', src: '13241559_XL1_20250201-removebg-preview.PNG' },
                 { name: 'Donut', src: '13227361_XL1_20221123-removebg-preview.PNG' },
             ];
-            // --- END REVERTED IMAGE REFERENCES ---
+            // --- END IMAGE REFERENCES ---
 
             const uniqueItems = items; 
 
-            // --- PRELOADER LOGIC: Download all images on page load ---
+            // --- PRELOADER LOGIC ---
             function preloadImages(imageArray) {
                 let loadedCount = 0;
                 const totalImages = imageArray.length;
@@ -437,13 +398,12 @@
                         const img = new Image();
                         img.onload = img.onerror = () => {
                             loadedCount++;
-                            // Update button text with loading status
                             startButton.textContent = `LOADING (${loadedCount}/${totalImages})...`;
                             if (loadedCount === totalImages) {
                                 resolve();
                             }
                         };
-                        img.src = item.src; // Trigger the download
+                        img.src = item.src; 
                     });
                 });
             }
@@ -519,18 +479,8 @@
                 scoreDisplay.textContent = `Score: ${totalScore.toFixed(0)}`;
             }
 
-            // === NEW LOGIC: Check item count and add wrap class ===
-            function toggleWrapClass(container, itemCount) {
-                // If 9 or more items are required, add the wrap-layout class to trigger multi-row CSS on small screens
-                // Otherwise, ensure no wrapping happens and horizontal scroll is possible.
-                if (itemCount >= 9) {
-                    container.classList.add('wrap-layout');
-                } else {
-                    container.classList.remove('wrap-layout');
-                }
-            }
-            // =======================================================
-
+            // Removed toggleWrapClass - Single row always, relying on min-width/scroll.
+            
             function startGame() {
                 startButton.style.display = 'none';
                 
@@ -551,8 +501,7 @@
                     originalSequence = selectedItems.map(item => item.name);
                 }
                 
-                // NEW: Apply wrapping class based on current level's item count
-                toggleWrapClass(itemListContainer, selectedItems.length);
+                // Removed call to toggleWrapClass(itemListContainer, selectedItems.length);
 
                 displayList(selectedItems, levelConfig.displayTime);
             }
@@ -609,8 +558,7 @@
                 reorderListContainer.innerHTML = '';
                 reorderListContainer.style.overflowX = 'auto'; 
                 
-                // NEW: Apply wrapping class based on current level's item count for the reorder list
-                toggleWrapClass(reorderListContainer, list.length);
+                // Removed call to toggleWrapClass(reorderListContainer, list.length);
 
                 const scrambledItems = getGuaranteedScrambledItems(list);
                 
@@ -792,13 +740,7 @@
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'item-list-row';
 
-                // NEW: If item count > 8, force wrap for results display
-                if (sequence.length >= 9) {
-                     rowDiv.classList.add('wrap-layout');
-                     // Set min-height for two rows in the results view
-                     rowDiv.style.minHeight = '150px'; 
-                }
-
+                // Removed logic that forced two rows for sequence.length >= 9
 
                 sequence.forEach((name, index) => {
                     const itemConfig = uniqueItems.find(i => i.name === name);
@@ -867,11 +809,7 @@
                         successRowContainer.className = 'item-list-row';
                         successRowContainer.style.gap = '0.5rem'; 
 
-                        // NEW: Apply wrapping class based on current level's item count for success display
-                        if (originalSequence.length >= 9) {
-                            successRowContainer.classList.add('wrap-layout');
-                            successRowContainer.style.minHeight = '150px';
-                        }
+                        // Removed logic that forced two rows for originalSequence.length >= 9
 
 
                         originalSequence.forEach(name => {
@@ -914,7 +852,6 @@
                     yourCartDiv.innerHTML = '<h3>Your Cart</h3>';
                     
                     const yourCartRow = buildItemRow(finalOrder, false, true);
-                    // NEW: The buildItemRow function now handles wrapping for the rows inside the results container
                     yourCartDiv.appendChild(yourCartRow); 
                     resultsContainer.appendChild(yourCartDiv);
 
@@ -924,7 +861,6 @@
                     rightCartDiv.innerHTML = '<h3>Right Cart</h3>';
                     
                     const rightCartRow = buildItemRow(originalSequence, true);
-                    // NEW: The buildItemRow function now handles wrapping for the rows inside the results container
                     rightCartDiv.appendChild(rightCartRow);
                     resultsContainer.appendChild(rightCartDiv);
 
