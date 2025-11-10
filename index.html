@@ -108,13 +108,12 @@
             width: 100%;
             margin-top: 1rem;
             gap: 0.75rem;
-            display: flex; /* FIX: Enable flex for the results container */
+            display: flex; 
             flex-direction: column;
         }
 
         .result-row {
             padding: 0.5rem;
-            /* FIX: Ensure result rows are also flex containers for horizontal layout */
             display: flex; 
             flex-direction: column; 
             align-items: center;
@@ -130,12 +129,10 @@
         }
         
         .item-list-row {
-            gap: 0.5rem; /* Tighter gap for mobile */
-            overflow-x: auto; /* Allow horizontal scroll if needed */
-            
-            /* CRITICAL FIX: Ensure inner list items are also flex */
+            gap: 0.5rem; 
+            overflow-x: auto; 
             display: flex; 
-            flex-wrap: nowrap; /* Keep items in a row */
+            flex-wrap: nowrap; 
             justify-content: center;
         }
         /* --- END FEEDBACK/COMPARISON STYLES --- */
@@ -150,17 +147,17 @@
         #item-list, #reorder-list {
             display: flex;
             justify-content: center; 
-            padding: 0.75rem; /* Reduced padding */
+            padding: 0.75rem; 
             border: 3px dashed #00BFFF;
             border-radius: 10px;
             width: 100%;
-            min-height: 110px; /* Reduced min height */
+            min-height: 110px; 
             box-sizing: border-box;
             transition: opacity 0.5s ease-in-out;
-            gap: 0.5rem; /* Gap between items */
+            gap: 0.5rem; 
             
-            flex-wrap: nowrap; /* Keep items in a row */
-            overflow-x: auto; /* Critical for when many items are present */
+            flex-wrap: nowrap; 
+            overflow-x: auto; 
             -webkit-overflow-scrolling: touch;
         }
         
@@ -169,7 +166,6 @@
         }
 
         .item {
-            /* Changed cursor to grab/pointer to indicate interactivity */
             cursor: grab; 
             padding: 0.3rem;
             border: 2px solid #00BFFF; 
@@ -184,20 +180,17 @@
             position: relative;
             text-align: center; 
             
-            /* Fluid sizing for items, allowing them to shrink but having a minimum target size */
             flex: 0 0 auto; 
-            min-width: 75px; /* Minimum width for touch target */
+            min-width: 75px; 
             max-width: 100px; 
             box-sizing: border-box;
         }
         
         /* Image styles */
         .item-icon {
-            /* FIX: Make image smaller than the container to allow padding/centering */
             max-width: 90%; 
             max-height: 90%;
             object-fit: contain;
-            /* FIX: Center the image within its wrapper */
             position: absolute; 
             top: 50%;
             left: 50%;
@@ -216,15 +209,13 @@
 
         .item.dragging {
             opacity: 0.8;
-            transform: scale(1.1); /* Slightly larger scale for better touch visibility */
+            transform: scale(1.1); 
             box-shadow: 0 0 15px #FF0000;
-            position: absolute; /* Take out of flow while dragging (Crucial for touch) */
+            position: absolute; 
             z-index: 1000; 
         }
         
-        /* Placeholder for where the dragging item was */
         .item-placeholder {
-            /* Match the size of the item */
             width: 75px; 
             min-height: 70px; 
             border: 3px dashed #FF6347;
@@ -256,9 +247,14 @@
             box-shadow: 0 0 15px rgba(50, 205, 50, 0.7);
         }
 
-        .play-button:hover {
+        .play-button:hover:not(:disabled) {
             background-color: #2cba2c;
             box-shadow: 0 0 20px rgba(50, 205, 50, 1.0);
+        }
+        
+        .play-button:disabled {
+            background-color: #4b6b8b; /* Muted color when loading */
+            cursor: not-allowed;
         }
 
         button:hover {
@@ -321,7 +317,7 @@
             <div id="timer"></div>
             <div id="item-list"></div> 
             
-            <button id="start-button" class="play-button">PLAY</button>
+            <button id="start-button" class="play-button" disabled>LOADING IMAGES...</button>
             
             <div id="reorder-list"></div>
             <button id="submit-button" style="display: none;">Submit Order</button>
@@ -331,7 +327,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- UPDATED IMAGE REFERENCES ---
+            // --- REVERTED TO PREVIOUS CLEAN IMAGE REFERENCES (Assuming files are correctly named on GitHub) ---
             const items = [
                 { name: 'Milk', src: '13202316_XL1_20211008-removebg-preview.PNG' },
                 { name: 'Eggs', src: '11046848_XL1-removebg-preview.PNG' },
@@ -346,13 +342,38 @@
                 { name: 'Carrot', src: '13241559_XL1_20250201-removebg-preview.PNG' },
                 { name: 'Donut', src: '13227361_XL1_20221123-removebg-preview.PNG' },
             ];
-            // --- END UPDATED IMAGE REFERENCES ---
+            // --- END REVERTED IMAGE REFERENCES ---
 
             const uniqueItems = items; 
 
-            // --- UPDATED createImageItem: Image Only, No Visible Text Fallback ---
+            // --- PRELOADER LOGIC: Download all images on page load ---
+            function preloadImages(imageArray) {
+                let loadedCount = 0;
+                const totalImages = imageArray.length;
+                
+                return new Promise((resolve) => {
+                    if (totalImages === 0) {
+                        resolve();
+                        return;
+                    }
+
+                    imageArray.forEach(item => {
+                        const img = new Image();
+                        img.onload = img.onerror = () => {
+                            loadedCount++;
+                            // Update button text with loading status
+                            startButton.textContent = `LOADING (${loadedCount}/${totalImages})...`;
+                            if (loadedCount === totalImages) {
+                                resolve();
+                            }
+                        };
+                        img.src = item.src; // Trigger the download
+                    });
+                });
+            }
+            // --- END PRELOADER LOGIC ---
+
             function createImageItem(item) {
-                // Main wrapper for the image and fallback background
                 const imageWrapper = document.createElement('div');
                 imageWrapper.className = 'item-image-wrapper'; 
                 
@@ -361,23 +382,18 @@
                 img.alt = item.name;
                 img.className = 'item-icon';
                 
-                // If image loads successfully, add it to the wrapper.
                 img.onload = function() {
                     imageWrapper.appendChild(img);
                 };
                 
-                // If image fails to load (missing file), do nothing; the wrapper's background color acts as the fallback.
                 img.onerror = function() {
                     console.warn(`Missing image file for: ${item.name} (${item.src}). Showing solid color fallback.`);
-                    // We don't append the image, so only the background color remains visible.
                 };
                 
-                // Attempt to load the image immediately
                 imageWrapper.appendChild(img);
                 
                 return imageWrapper;
             }
-            // --- END UPDATED createImageItem ---
 
 
             let originalSequence = [];
@@ -393,7 +409,6 @@
             let placeholder = null;
             let activeList = null; 
 
-            // --- FIXED TIME CONSTANTS ---
             const FIXED_THINK_TIME_MS = 8000;
             const FIXED_ORDER_TIME_S = 15;
             const SCORE_PER_SECOND_BONUS = 5;
@@ -440,12 +455,10 @@
                 let selectedItems = [];
 
                 if (startButton.textContent === 'Retry Level') {
-                    // Find items based on the names in the previous originalSequence
                     selectedItems = originalSequence.map(name => 
                         uniqueItems.find(item => item.name === name)
                     );
                 } else {
-                    // Normal start or Next Level: get new random items and update originalSequence
                     selectedItems = getRandomItems(levelConfig.items);
                     originalSequence = selectedItems.map(item => item.name);
                 }
@@ -492,7 +505,6 @@
 
                 while (!isScrambled) {
                     scrambledList = [...originalList].sort(() => 0.5 - Math.random());
-                    // Must contain at least one difference
                     isScrambled = scrambledList.some((item, index) => item.name !== originalList[index].name);
                 }
                 return scrambledList;
@@ -504,21 +516,21 @@
                 itemListContainer.style.display = 'none';
                 reorderListContainer.style.display = 'flex'; 
                 reorderListContainer.innerHTML = '';
-                reorderListContainer.style.overflowX = 'auto'; // Re-enable scroll if needed
+                reorderListContainer.style.overflowX = 'auto'; 
 
                 const scrambledItems = getGuaranteedScrambledItems(list);
                 
                 scrambledItems.forEach(item => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'item';
-                    itemDiv.draggable = true; // Keep for desktop drag/drop
+                    itemDiv.draggable = true; 
                     itemDiv.dataset.name = item.name;
                     itemDiv.appendChild(createImageItem(item)); 
                     reorderListContainer.appendChild(itemDiv);
                 });
 
                 setupDesktopDragAndDrop();
-                setupTouchControls(); // Set up touch for mobile
+                setupTouchControls(); 
                 submitButton.style.display = 'block';
                 
                 startTime = Date.now();
@@ -534,16 +546,14 @@
                 }, 1000);
             }
             
-            // --- DESKTOP/MOUSE DRAG LOGIC ---
+            // --- DRAG AND DROP LOGIC (Unchanged) ---
             function setupDesktopDragAndDrop() {
                 const listItems = document.querySelectorAll('#reorder-list .item');
                 let draggingItem = null;
 
-                // Desktop Drag & Drop (Still valid for mouse users)
                 listItems.forEach(item => {
                     item.addEventListener('dragstart', () => {
                         draggingItem = item;
-                        // Use setTimeout to ensure the dragging class is applied after drag event is initiated
                         setTimeout(() => item.classList.add('dragging'), 0); 
                     });
 
@@ -557,11 +567,10 @@
 
                 reorderListContainer.addEventListener('dragover', (e) => {
                     e.preventDefault();
-                    // This function is reused to find the insertion point for both mouse and touch
                     const afterElement = getDragAfterElement(reorderListContainer, e.clientY, e.clientX); 
                     const draggable = document.querySelector('.dragging');
                     
-                    if (draggable && !draggable.touchDragging) { // Exclude touch-dragged items from mouse events
+                    if (draggable && !draggable.touchDragging) { 
                         if (afterElement == null) {
                             reorderListContainer.appendChild(draggable);
                         } else {
@@ -571,13 +580,10 @@
                 });
             }
             
-            // --- CRITICAL MOBILE TOUCH LOGIC ---
-
             function setupTouchControls() {
                 activeList = reorderListContainer;
                 const items = activeList.querySelectorAll('.item');
                 
-                // Ensure existing listeners are removed before adding new ones
                 items.forEach(item => {
                     item.removeEventListener('touchstart', handleTouchStart);
                     item.removeEventListener('touchmove', handleTouchMove);
@@ -590,52 +596,41 @@
             }
 
             function handleTouchStart(e) {
-                // Only handle single touch for dragging
                 if (e.touches.length > 1 || draggingItem) return;
                 
                 e.preventDefault(); 
                 
-                // 1. Setup Item State
                 draggingItem = e.currentTarget;
                 draggingItem.classList.add('dragging');
-                draggingItem.touchDragging = true; // Flag to differentiate from desktop drag
+                draggingItem.touchDragging = true; 
 
-                // 2. Create Placeholder
                 placeholder = document.createElement('div');
                 placeholder.className = 'item-placeholder';
                 activeList.insertBefore(placeholder, draggingItem.nextSibling);
 
-                // 3. Calculate Offsets for Absolute Positioning
                 const touch = e.touches[0];
                 const rect = draggingItem.getBoundingClientRect();
                 
-                // Store offset from touch point to item top-left corner
                 draggingItem.offsetX = touch.clientX - rect.left;
                 draggingItem.offsetY = touch.clientY - rect.top;
 
-                // 4. Apply Initial Absolute Position
                 draggingItem.style.position = 'absolute';
-                // Adjust position based on scroll to ensure it stays anchored to the touch point
                 draggingItem.style.left = `${touch.clientX - draggingItem.offsetX}px`;
                 draggingItem.style.top = `${touch.clientY - draggingItem.offsetY}px`;
                 
-                // 5. Temporarily disable the list container's horizontal scroll
                 activeList.style.overflowX = 'hidden'; 
             }
 
             function handleTouchMove(e) {
                 if (!draggingItem || !draggingItem.touchDragging) return;
                 
-                // FIX 3: Prevent default scrolling behavior during touch move
                 e.preventDefault(); 
                 
                 const touch = e.touches[0];
                 
-                // 1. Update absolute position of the dragging item
                 draggingItem.style.left = `${touch.clientX - draggingItem.offsetX}px`;
                 draggingItem.style.top = `${touch.clientY - draggingItem.offsetY}px`;
                 
-                // 2. Find where to insert the placeholder
                 const afterElement = getDragAfterElement(activeList, touch.clientY, touch.clientX);
                 
                 if (afterElement == null) {
@@ -648,34 +643,27 @@
             function handleTouchEnd(e) {
                 if (!draggingItem || !draggingItem.touchDragging) return;
 
-                // 1. Final insertion: insert the dragging item where the placeholder is
                 activeList.insertBefore(draggingItem, placeholder);
                 
-                // 2. Clean up styles and state
                 draggingItem.classList.remove('dragging');
                 draggingItem.touchDragging = false;
                 draggingItem.style.position = '';
                 draggingItem.style.left = '';
                 draggingItem.style.top = '';
                 
-                // 3. Remove placeholder
                 if (placeholder) {
                     placeholder.remove();
                     placeholder = null;
                 }
                 draggingItem = null;
                 
-                // 4. Re-enable scroll
                 activeList.style.overflowX = 'auto'; 
             }
             
-            // Finds the element to insert after based on X-position
             function getDragAfterElement(container, y, x) {
-                // Find visible items that are not the placeholder or the item currently being dragged
                 const draggableElements = [...container.querySelectorAll('.item:not(.dragging)')]
                     .filter(el => el !== placeholder);
                 
-                // Find the closest item horizontally
                 const closest = draggableElements.reduce((closest, child) => {
                     const rect = child.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
@@ -695,14 +683,13 @@
                 const rect = child.getBoundingClientRect();
                 const itemMidX = rect.left + rect.width / 2;
                 
-                // If touch/mouse X is past the middle of the element, insert after it
                 if (x > itemMidX) {
                     return child.nextElementSibling;
                 } else {
-                    return child; // Insert before it
+                    return child; 
                 }
             }
-            // --- END CRITICAL MOBILE TOUCH LOGIC ---
+            // --- END DRAG AND DROP LOGIC ---
 
 
             function buildItemRow(sequence, isCorrectRow, highlightCorrect = false) {
@@ -744,7 +731,6 @@
                     }
                 });
                 
-                // Disable touch handling
                 const items = reorderListContainer.querySelectorAll('.item');
                 items.forEach(item => {
                     item.removeEventListener('touchstart', handleTouchStart);
@@ -763,7 +749,6 @@
 
                     updateDisplay(); 
 
-                    // SUCCESS FEEDBACK
                     instruction.className = 'feedback-title success-message';
                     instruction.textContent = "Cart Filled Successfully!";
                     timerDisplay.textContent = `Score Bonus: +${(timeBonus * SCORE_PER_SECOND_BONUS).toFixed(0)}`;
@@ -776,7 +761,7 @@
                         
                         const successRowContainer = document.createElement('div');
                         successRowContainer.className = 'item-list-row';
-                        successRowContainer.style.gap = '0.5rem'; /* Use smaller gap for success view */
+                        successRowContainer.style.gap = '0.5rem'; 
 
                         originalSequence.forEach(name => {
                             const itemConfig = uniqueItems.find(i => i.name === name);
@@ -805,7 +790,6 @@
                     lives--;
                     updateDisplay();
                     
-                    // FAILURE FEEDBACK
                     instruction.className = 'feedback-title failure-message';
                     instruction.textContent = "Cart Filled Unsuccessfully";
                     timerDisplay.textContent = `Lives remaining: ${lives}`;
@@ -813,14 +797,12 @@
                     const resultsContainer = document.createElement('div');
                     resultsContainer.className = 'results-container'; 
                     
-                    // 1. YOUR CART (User's Incorrect Order)
                     const yourCartDiv = document.createElement('div');
                     yourCartDiv.className = 'result-row';
                     yourCartDiv.innerHTML = '<h3>Your Cart</h3>';
                     yourCartDiv.appendChild(buildItemRow(finalOrder, false, true)); 
                     resultsContainer.appendChild(yourCartDiv);
 
-                    // 2. RIGHT CART (Correct Order)
                     const rightCartDiv = document.createElement('div');
                     rightCartDiv.className = 'result-row';
                     rightCartDiv.innerHTML = '<h3>Right Cart</h3>';
@@ -876,14 +858,22 @@
 
             // INITIALIZATION
             updateDisplay();
-            instruction.textContent = "Welcome to FPG's Aisle Dash!";
+            instruction.textContent = "Welcome to FPG's Aisle Dash! Please wait while images load...";
             timerDisplay.textContent = '';
             
-            // Set initial state visibility
             summaryText.style.display = 'block';
-            itemListContainer.style.display = 'none'; // Hide the item box until game starts
+            itemListContainer.style.display = 'none'; 
             reorderListContainer.style.display = 'none';
             startButton.style.display = 'block';
+            
+            // 1. Start Preloading
+            preloadImages(uniqueItems).then(() => {
+                // 2. Once loaded, enable the button
+                startButton.disabled = false;
+                startButton.textContent = 'PLAY';
+                startButton.classList.add('play-button');
+                instruction.textContent = "Welcome to FPG's Aisle Dash!";
+            });
 
         });
     </script>
