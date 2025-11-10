@@ -156,9 +156,22 @@
             transition: opacity 0.5s ease-in-out;
             gap: 0.5rem; 
             
-            flex-wrap: nowrap; 
+            flex-wrap: nowrap; /* Default: Keep items in a single row */
             overflow-x: auto; 
             -webkit-overflow-scrolling: touch;
+        }
+
+        /* === NEW: Responsive Wrap CSS === */
+        /* Apply wrapping behavior to lists only on smaller screens (mobile/tablet) when they have the 'wrap-layout' class */
+        @media (max-width: 768px) {
+            .wrap-layout {
+                flex-wrap: wrap !important; /* Force wrapping */
+                overflow-x: hidden !important; /* Prevent horizontal scroll */
+                min-height: 200px; /* Allow space for two rows */
+                align-items: flex-start; /* Items start at the top */
+                justify-content: space-evenly !important; /* Evenly space items across the width */
+                padding-bottom: 0.5rem;
+            }
         }
         
         #reorder-list {
@@ -184,7 +197,22 @@
             min-width: 75px; 
             max-width: 100px; 
             box-sizing: border-box;
+            
+            /* NEW: For wrapped layout, fix item size slightly smaller to fit 4 or 5 across */
+            margin-bottom: 0.5rem; 
+            width: 20%; /* Flexible basis, overridden by media query for very small screens */
         }
+
+        /* Adjust item size for wrapping to prevent cramped look on small phones */
+        @media (max-width: 480px) {
+            .wrap-layout .item,
+            .result-row .item {
+                max-width: 85px;
+                min-width: 70px;
+                width: 25%; /* Max 4 per row */
+            }
+        }
+        /* End Responsive Wrap CSS */
         
         /* Image styles */
         .item-icon {
@@ -443,6 +471,17 @@
                 scoreDisplay.textContent = `Score: ${totalScore.toFixed(0)}`;
             }
 
+            // === NEW LOGIC: Check item count and add wrap class ===
+            function toggleWrapClass(container, itemCount) {
+                // If 9 or more items are required, add the wrap-layout class to trigger multi-row CSS on small screens
+                if (itemCount >= 9) {
+                    container.classList.add('wrap-layout');
+                } else {
+                    container.classList.remove('wrap-layout');
+                }
+            }
+            // =======================================================
+
             function startGame() {
                 startButton.style.display = 'none';
                 
@@ -462,6 +501,9 @@
                     selectedItems = getRandomItems(levelConfig.items);
                     originalSequence = selectedItems.map(item => item.name);
                 }
+                
+                // NEW: Apply wrapping class based on current level's item count
+                toggleWrapClass(itemListContainer, selectedItems.length);
 
                 displayList(selectedItems, levelConfig.displayTime);
             }
@@ -517,6 +559,9 @@
                 reorderListContainer.style.display = 'flex'; 
                 reorderListContainer.innerHTML = '';
                 reorderListContainer.style.overflowX = 'auto'; 
+                
+                // NEW: Apply wrapping class based on current level's item count for the reorder list
+                toggleWrapClass(reorderListContainer, list.length);
 
                 const scrambledItems = getGuaranteedScrambledItems(list);
                 
@@ -619,6 +664,7 @@
                 draggingItem.style.top = `${touch.clientY - draggingItem.offsetY}px`;
                 
                 activeList.style.overflowX = 'hidden'; 
+                activeList.style.overflowY = 'hidden'; // Prevent vertical scroll while dragging
             }
 
             function handleTouchMove(e) {
@@ -658,6 +704,7 @@
                 draggingItem = null;
                 
                 activeList.style.overflowX = 'auto'; 
+                activeList.style.overflowY = 'auto'; 
             }
             
             function getDragAfterElement(container, y, x) {
@@ -695,6 +742,14 @@
             function buildItemRow(sequence, isCorrectRow, highlightCorrect = false) {
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'item-list-row';
+
+                // NEW: If item count > 8, force wrap for results display
+                if (sequence.length >= 9) {
+                     rowDiv.classList.add('wrap-layout');
+                     // Set min-height for two rows in the results view
+                     rowDiv.style.minHeight = '150px'; 
+                }
+
 
                 sequence.forEach((name, index) => {
                     const itemConfig = uniqueItems.find(i => i.name === name);
@@ -763,6 +818,13 @@
                         successRowContainer.className = 'item-list-row';
                         successRowContainer.style.gap = '0.5rem'; 
 
+                        // NEW: Apply wrapping class based on current level's item count for success display
+                        if (originalSequence.length >= 9) {
+                            successRowContainer.classList.add('wrap-layout');
+                            successRowContainer.style.minHeight = '150px';
+                        }
+
+
                         originalSequence.forEach(name => {
                             const itemConfig = uniqueItems.find(i => i.name === name);
                             const itemDiv = document.createElement('div');
@@ -797,16 +859,24 @@
                     const resultsContainer = document.createElement('div');
                     resultsContainer.className = 'results-container'; 
                     
+                    // 1. YOUR CART (User's Incorrect Order)
                     const yourCartDiv = document.createElement('div');
                     yourCartDiv.className = 'result-row';
                     yourCartDiv.innerHTML = '<h3>Your Cart</h3>';
-                    yourCartDiv.appendChild(buildItemRow(finalOrder, false, true)); 
+                    
+                    const yourCartRow = buildItemRow(finalOrder, false, true);
+                    // NEW: The buildItemRow function now handles wrapping for the rows inside the results container
+                    yourCartDiv.appendChild(yourCartRow); 
                     resultsContainer.appendChild(yourCartDiv);
 
+                    // 2. RIGHT CART (Correct Order)
                     const rightCartDiv = document.createElement('div');
                     rightCartDiv.className = 'result-row';
                     rightCartDiv.innerHTML = '<h3>Right Cart</h3>';
-                    rightCartDiv.appendChild(buildItemRow(originalSequence, true));
+                    
+                    const rightCartRow = buildItemRow(originalSequence, true);
+                    // NEW: The buildItemRow function now handles wrapping for the rows inside the results container
+                    rightCartDiv.appendChild(rightCartRow);
                     resultsContainer.appendChild(rightCartDiv);
 
                     itemListContainer.style.display = 'flex';
