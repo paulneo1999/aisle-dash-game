@@ -135,7 +135,7 @@
             
             /* CRITICAL FIX: Ensure inner list items are also flex */
             display: flex; 
-            flex-wrap: wrap; /* Allow items to wrap if screen is very small, but prioritize horizontal scroll */
+            flex-wrap: nowrap; /* Keep items in a row */
             justify-content: center;
         }
         /* --- END FEEDBACK/COMPARISON STYLES --- */
@@ -331,20 +331,22 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
+            // --- UPDATED IMAGE REFERENCES ---
             const items = [
-                { name: 'Milk', src: '13202316_XL1_20211008.WEBP' },
-                { name: 'Eggs', src: '11046848_XL1.WEBP' },
-                { name: 'Bread', src: '13218895_XL1_20220805.WEBP' },
-                { name: 'Cheese', src: '13179364_XL1_20250128.WEBP' },
-                { name: 'Cereal', src: '10045587_XL1_20201012.WEBP' },
-                { name: 'Apple', src: '13242536_XL1_20251022.WEBP' },
-                { name: 'Soap', src: '432823_XL1_20210504.WEBP' },
-                { name: 'Coffee', src: '13267810_XL1_20250423.WEBP' },
-                { name: 'Water', src: '13271014_XL1_20250703.WEBP' },
-                { name: 'Potato', src: '13259518_XL1_20250217.WEBP' },
-                { name: 'Carrot', src: '13241559_XL1_20250201.WEBP' },
-                { name: 'Donut', src: '13227361_XL1_20221123.WEBP' },
+                { name: 'Milk', src: '13202316_XL1_20211008-removebg-preview.PNG' },
+                { name: 'Eggs', src: '11046848_XL1-removebg-preview.PNG' },
+                { name: 'Bread', src: '13218895_XL1_20220805-removebg-preview.PNG' },
+                { name: 'Cheese', src: '13179364_XL1_20250128-removebg-preview.PNG' },
+                { name: 'Cereal', src: '10045587_XL1_20201012-removebg-preview.PNG' },
+                { name: 'Apple', src: '13242536_XL1_20251022-removebg-preview.PNG' },
+                { name: 'Soap', src: '432823_XL1_20210504-removebg-preview.PNG' },
+                { name: 'Coffee', src: '13267810_XL1_20250423-removebg-preview.PNG' },
+                { name: 'Water', src: '13271014_XL1_20250703-removebg-preview.PNG' },
+                { name: 'Potato', src: '13259518_XL1_20250217-removebg-preview.PNG' },
+                { name: 'Carrot', src: '13241559_XL1_20250201-removebg-preview.PNG' },
+                { name: 'Donut', src: '13227361_XL1_20221123-removebg-preview.PNG' },
             ];
+            // --- END UPDATED IMAGE REFERENCES ---
 
             const uniqueItems = items; 
 
