@@ -193,19 +193,18 @@
         
         /* Image styles */
         .item-icon {
-            width: 70px; /* Fixed small size for image */
-            height: 70px;
+            /* FIX: Make image smaller than the container to allow padding/centering */
+            max-width: 90%; 
+            max-height: 90%;
             object-fit: contain;
-            /* Ensure image covers the full space of its container */
+            /* FIX: Center the image within its wrapper */
             position: absolute; 
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         
-        /* Style for the text fallback when image fails */
-        /* REMOVED ALL TEXT FALLBACK ELEMENTS, keeping only the colored background */
+        /* Style for the image wrapper/fallback container */
         .item-image-wrapper {
             width: 100%; 
             height: 70px; 
@@ -309,10 +308,10 @@
             <div id="summary-text">
                 <p><strong>Rules:</strong></p>
                 <p>
-                    1. <span class="red-bold">Memorize</span> the sequence of items in the time limit (8 seconds).
+                    1. <span class="red-bold">Memorize</span> the sequence of items in 8 seconds.
                 </p>
                 <p>
-                    2. <span class="red-bold">Reorder</span> the scrambled items into the correct sequence using **drag-and-drop or touch-and-move** (15 seconds).
+                    2. <span class="red-bold">Reorder</span> the scrambled items into the correct sequence by dragging and dropping in 15 seconds or less.
                 </p>
                 <p>
                     3. <span class="red-bold">Win</span> by reordering correctly, the faster, the more points! You have <span class="red-bold">3 lives</span>!
