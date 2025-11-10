@@ -156,7 +156,7 @@
             transition: opacity 0.5s ease-in-out;
             gap: 0.5rem; 
             
-            flex-wrap: nowrap; /* Default: Keep items in a single row */
+            flex-wrap: nowrap; 
             overflow-x: auto; 
             -webkit-overflow-scrolling: touch;
         }
@@ -202,27 +202,8 @@
 
 
         /* === Responsive Wrap CSS === */
-        /* Apply wrapping behavior to lists only on smaller screens (mobile/tablet) when they have the 'wrap-layout' class */
-        @media (max-width: 768px) {
-            .wrap-layout {
-                flex-wrap: wrap !important; /* Force wrapping */
-                overflow-x: hidden !important; /* Prevent horizontal scroll */
-                min-height: 200px; /* Allow space for two rows */
-                align-items: flex-start; /* Items start at the top */
-                justify-content: space-evenly !important; /* Evenly space items across the width */
-                padding-bottom: 0.5rem;
-            }
-            
-            /* Hide the custom horizontal scrollbar when wrapping is active */
-            .wrap-layout::-webkit-scrollbar {
-                display: none;
-            }
-        }
         
-        #reorder-list {
-            display: none;
-        }
-
+        /* This rule forces items to fit on one line as long as possible. */
         .item {
             cursor: grab; 
             padding: 0.3rem;
@@ -238,24 +219,46 @@
             position: relative;
             text-align: center; 
             
-            flex: 0 0 auto; 
-            min-width: 75px; 
+            flex: 0 0 10%; /* NEW: Base width is 10% (10 cards fit a row) */
+            min-width: 75px; /* Minimum size to keep items usable */
             max-width: 100px; 
             box-sizing: border-box;
             
-            /* NEW: For wrapped layout, fix item size slightly smaller to fit 4 or 5 across */
             margin-bottom: 0.5rem; 
-            width: 20%; /* Flexible basis, overridden by media query for very small screens */
         }
 
-        /* Adjust item size for wrapping to prevent cramped look on small phones */
-        @media (max-width: 480px) {
-            .wrap-layout .item,
-            .result-row .item {
-                max-width: 85px;
-                min-width: 70px;
-                width: 25%; /* Max 4 per row */
+        /* ---------------------------------------------------- */
+        /* RULE 1: FOR SINGLE ROW (Less than 9 items) - Allows shrinking but scroll only if necessary */
+        /* ---------------------------------------------------- */
+
+        /* ---------------------------------------------------- */
+        /* RULE 2: FOR MULTI-ROW (9 items or more) - Forces wrapping and removes horizontal scroll */
+        /* ---------------------------------------------------- */
+        @media (max-width: 768px) {
+            .wrap-layout {
+                flex-wrap: wrap !important; /* Force wrapping */
+                overflow-x: hidden !important; /* Prevent horizontal scroll */
+                min-height: 200px; /* Allow space for two rows */
+                align-items: flex-start; /* Items start at the top */
+                justify-content: space-evenly !important; /* Evenly space items across the width */
+                padding-bottom: 0.5rem;
             }
+            
+            /* Items in wrap-layout should be large enough to fit 4-5 items per row without getting too small */
+            .wrap-layout .item {
+                flex-basis: 22%; /* Aim for 4 cards wide on most phones */
+                min-width: 70px;
+                max-width: 100px;
+            }
+
+            /* Hide the custom horizontal scrollbar when wrapping is active */
+            .wrap-layout::-webkit-scrollbar {
+                display: none;
+            }
+        }
+        
+        #reorder-list {
+            display: none;
         }
         /* End Responsive Wrap CSS */
         
@@ -519,6 +522,7 @@
             // === NEW LOGIC: Check item count and add wrap class ===
             function toggleWrapClass(container, itemCount) {
                 // If 9 or more items are required, add the wrap-layout class to trigger multi-row CSS on small screens
+                // Otherwise, ensure no wrapping happens and horizontal scroll is possible.
                 if (itemCount >= 9) {
                     container.classList.add('wrap-layout');
                 } else {
