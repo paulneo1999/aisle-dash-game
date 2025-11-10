@@ -32,7 +32,8 @@
             width: 100%; /* Maximize width */
             max-width: 1100px; 
             position: relative;
-            overflow: hidden;
+            /* Changed to HIDDEN to try and prevent scrollbar from appearing when overflow occurs */
+            overflow-x: hidden; 
             box-sizing: border-box;
         }
 
@@ -157,11 +158,11 @@
             gap: 0.5rem; 
             
             flex-wrap: nowrap; 
-            overflow-x: auto; 
+            overflow-x: auto; /* Still needed for touch scrolling fallback */
             -webkit-overflow-scrolling: touch;
         }
         
-        /* === SCROLLBAR STYLES (Kept for visibility when scroll is needed) === */
+        /* --- SCROLLBAR STYLES (Hidden on body, but custom style remains for list containers) --- */
         #item-list, #reorder-list, .item-list-row {
             scrollbar-color: #FF0000 #1a334c; 
             scrollbar-width: thin; 
@@ -189,7 +190,7 @@
         .item-list-row::-webkit-scrollbar-thumb:hover {
             background-color: #FF6347; 
         }
-        /* === END SCROLLBAR STYLES === */
+        /* ------------------------------------------------------------------------------------ */
 
 
         /* === ITEM SIZING: Aggressively shrink to fit in one row === */
@@ -208,14 +209,23 @@
             position: relative;
             text-align: center; 
             
-            /* Aggressively flexible for single row */
+            /* Flexible for single row */
             flex: 0 0 auto; 
-            min-width: 65px; /* Minimum size to allow more cards to fit before scroll */
+            min-width: 65px; 
             max-width: 90px; 
-            width: 10%; /* General guidance for layout */
+            width: 10%; 
             box-sizing: border-box;
             
             margin-bottom: 0.5rem; 
+        }
+        
+        /* NEW: Aggressive shrinking for the narrowest mobile screens (under 450px) */
+        /* This rule forces the cards to shrink much smaller to try and fit 9+ cards. */
+        @media (max-width: 450px) {
+            .item {
+                min-width: 50px; /* Reduced minimum size to allow 6-7 cards before scroll */
+                max-width: 75px;
+            }
         }
         
         #reorder-list {
